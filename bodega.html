@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BODEGA - SOFTCON-MYS</title>
+    <style>
+        :root {
+            --azul: #002344;
+            --mostaza: #e1ad01;
+            --peligro: #d32f2f;
+            --exito: #2e7d32;
+            --lectura: #f0f0f0;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .bodega-container { max-width: 1400px; margin: auto; }
+
+        /* ESTADOS DE OBRA */
+        .archivo-cerrado { opacity: 0.7; pointer-events: none; border: 2px solid #999 !important; }
+        .badge-cerrado { background: #666; color: white; padding: 5px 10px; border-radius: 4px; font-weight: bold; }
+
+        .grid-bodega { display: grid; grid-template-columns: 1fr 350px; gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        
+        h2 { border-left: 5px solid var(--mostaza); padding-left: 15px; color: var(--azul); font-size: 1.1rem; display: flex; justify-content: space-between; }
+
+        /* TABLAS */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.85rem; }
+        th { background: var(--azul); color: white; padding: 12px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #eee; }
+
+        .alerta-sobrecosto { color: var(--peligro); font-weight: bold; animation: blink 1s infinite; }
+        @keyframes blink { 0% {opacity: 1;} 50% {opacity: 0.5;} 100% {opacity: 1;} }
+
+        /* FORMULARIOS */
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 15px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+        .btn-accion { background: var(--azul); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+
+        /* BARRAS DE STOCK */
+        .stock-bar { background: #eee; height: 10px; border-radius: 5px; margin-top: 5px; }
+        .stock-fill { height: 100%; border-radius: 5px; }
+
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; background: #ddd; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .tab.active { background: var(--mostaza); color: var(--azul); }
+    </style>
+</head>
+<body>
+    <nav class="fixed top-0 left-0 w-full bg-[#002344] text-white flex justify-between items-center px-6 py-3 shadow-lg z-50">
+        <div class="flex items-center gap-2">
+            <i data-lucide="layout-dashboard" class="w-6 h-6 text-yellow-400"></i>
+            <span class="font-black tracking-tight text-lg">SOFTCON-MYS</span>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="window.location.href='dashboard.html'" 
+                class="bg-yellow-500 text-[#002344] p-2 rounded-full hover:scale-110 transition-transform flex items-center justify-center" title="Ir al Dashboard">
+                <i data-lucide="home" class="w-5 h-5"></i>
+            </button>
+            <button onclick="window.location.href='index.html'" 
+                class="bg-red-500 text-white p-2 rounded-full hover:scale-110 transition-transform flex items-center justify-center" title="Cerrar Sesión">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </nav>
+    <div class="h-16"></div>
+
+<div class="bodega-container">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h1 style="color: var(--azul); margin: 0;">SOFTCON-MYS: GESTIÓN DE BODEGA E INVENTARIOS</h1>
+        <small style="color: var(--mostaza-dark); font-weight: bold;">"CONSTRUYENDO TU FUTURO"</small>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="showSection('materiales')">🏗️ MATERIALES Y CONSUMOS</div>
+        <div class="tab" onclick="showSection('activos')">🔧 MAQUINARIA Y HERRAMIENTAS</div>
+        <div class="tab" onclick="showSection('ordenes')">📦 ORDENES</div>
+    </div>
+
+    <div class="grid-bodega">
+        <div class="main-content">
+            
+            <div id="sec-materiales" class="card">
+                <h2>Control de Stock vs Presupuesto <span id="statusObra">ESTADO: ACTIVO</span></h2>
+                <div class="form-row">
+                    <select id="selProyecto">
+                        <option>Residencial Modelo A</option>
+                        <option>Bodega Industrial X</option>
+                    </select>
+                    <input type="text" placeholder="Material (Cimiento, Block, etc)">
+                    <input type="number" placeholder="Cantidad">
+                    <input type="number" placeholder="Costo Unitario (Q)">
+                    <button class="btn-accion" onclick="registrarIngreso()">REGISTRAR SALIDA</button>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Material</th>
+                            <th>Renglón APU</th>
+                            <th>Ppto. Calculado</th>
+                            <th>Ingresado</th>
+                            <th>Diferencia / Alerta</th>
+                            <th>Costo Ref.</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaMateriales">
+                        <tr>
+                            <td>Cemento UGC</td>
+                            <td>Cimentación</td>
+                            <td>100 sacos</td>
+                            <td>95 sacos</td>
+                            <td>5 sacos <div class="stock-bar"><div class="stock-fill" style="width: 95%; background: var(--exito);"></div></div></td>
+                            <td>Q 85.00</td>
+                        </tr>
+                        <tr>
+                            <td>Block 14x19x39</td>
+                            <td>Mampostería</td>
+                            <td>2,000 un.</td>
+                            <td>2,150 un.</td>
+                            <td><span class="alerta-sobrecosto">⚠️ EXCESO: +150 un.</span> <div class="stock-bar"><div class="stock-fill" style="width: 100%; background: var(--peligro);"></div></div></td>
+                            <td><span class="alerta-sobrecosto">Q 6.50 (Sube Q0.50)</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button class="btn-accion" style="margin-top:20px; background:var(--peligro);" onclick="finalizarObra()">🔒 FINALIZAR OBRA Y ARCHIVAR DATOS</button>
+            </div>
+
+            <div id="sec-activos" class="card" style="display:none;">
+                <h2>Inventario de Maquinaria y Herramientas Propias</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Descripción</th>
+                            <th>Estado</th>
+                            <th>Asignado a: (Contrato)</th>
+                            <th>Fecha de Entrega</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>HER-001</td>
+                            <td>Rotomartillo Industrial</td>
+                            <td><span style="color:var(--peligro)">OCUPADO</span></td>
+                            <td><strong>WM-004: José Patzán</strong></td>
+                            <td>12/01/2026</td>
+                        </tr>
+                        <tr>
+                            <td>MAQ-005</td>
+                            <td>Mezcladora de 1 saco</td>
+                            <td><span style="color:var(--exito)">EN BODEGA</span></td>
+                            <td>---</td>
+                            <td>---</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="side-panel">
+            <div id="sec-ordenes" class="card">
+                <h3>📦 Ordenes</h3>
+                <div style="font-size:0.8rem;">
+                    <p><b>Ferretería El Éxito:</b><br>Sobre-costo detectado en Hierro (12%).</p>
+                    <hr>
+                    <p><b>Cementos Pro:</b><br>Cumplimiento de precio pactado.</p>
+                </div>
+            </div>
+
+            <div class="card" style="background: var(--azul); color: white;">
+                <h3>📊 Resumen para Tablero</h3>
+                <div id="resumenTablero" style="font-size: 0.85rem;">
+                    <p>Sobrante Estimado: <br><b style="color:var(--mostaza);">Q 4,500.00</b></p>
+                    <p>Renglón Crítico: <br><b>Mampostería (Exceso de material)</b></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showSection(section) {
+        document.getElementById('sec-materiales').style.display = section === 'materiales' ? 'block' : 'none';
+        document.getElementById('sec-activos').style.display = section === 'activos' ? 'block' : 'none';
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+    }
+
+    function registrarIngreso() {
+        alert("SISTEMA: Validando contra Calculadora APU... \nRestando de stock de proyecto seleccionado.");
+    }
+
+    function finalizarObra() {
+        if(confirm("¿Seguro que desea finalizar la obra? Todos los datos se pondrán en MODO LECTURA y se cerrará el inventario físico.")) {
+            document.querySelector('.main-content').classList.add('archivo-cerrado');
+            document.getElementById('statusObra').innerHTML = '<span class="badge-cerrado">📂 ARCHIVO CERRADO (SOLO LECTURA)</span>';
+            alert("OBRA FINALIZADA: Datos enviados al Tablero Principal. El archivo ahora es no-editable.");
+        }
+    }
+</script>
+<!-- Botón flotante eliminado, navbar superior lo reemplaza -->
+    lucide.createIcons();
+
+<script>
+    const URL_DATABASE = "https://script.google.com/macros/s/AKfycbxACLXsnOalHL6GE9I0x3JrbXZ8lzrnRBi8RPW-tTjhTPKzFoYzjoGnBQoO0OiSX7L57g/exec";
+</script>
+</body>
+</html>

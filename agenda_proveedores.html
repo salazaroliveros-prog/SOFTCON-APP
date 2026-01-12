@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Agenda de Proveedores | SOFTCON-MYS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-50 p-4">
+    <div class="max-w-md mx-auto bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-200">
+        <div class="bg-[#002344] p-6 text-white flex justify-between items-center">
+            <div>
+                <h1 class="text-lg font-black italic">AGENDA</h1>
+                <p class="text-yellow-400 text-[8px] tracking-widest uppercase">Directorio de Proveedores</p>
+            </div>
+            <button onclick="window.location.href='dashboard.html'" class="bg-slate-700 p-2 rounded-full">
+                <i data-lucide="home" class="w-4 h-4 text-white"></i>
+            </button>
+        </div>
+
+        <div class="p-6 border-b border-slate-100">
+            <h2 class="text-[10px] font-black text-slate-400 uppercase mb-4">Nuevo Proveedor</h2>
+            <div class="space-y-3">
+                <input type="text" id="nombreProv" placeholder="Nombre de la Empresa" class="w-full p-3 bg-slate-50 rounded-xl border-none text-sm font-bold">
+                <input type="number" id="telProv" placeholder="WhatsApp (Ej: 57300...)" class="w-full p-3 bg-slate-50 rounded-xl border-none text-sm font-bold">
+                <button onclick="guardarProveedor()" class="w-full bg-yellow-500 text-[#002344] font-black py-3 rounded-xl text-xs uppercase shadow-md">
+                    Registrar en Base de Datos
+                </button>
+            </div>
+        </div>
+
+        <div class="p-6">
+            <h2 class="text-[10px] font-black text-slate-400 uppercase mb-4">Mis Proveedores</h2>
+            <div id="listaProveedores" class="space-y-3 max-h-64 overflow-y-auto">
+                <p class="text-center text-[10px] text-slate-400">Cargando directorio...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Aquí conectarás con tu URL_DATABASE de Apps Script
+        function guardarProveedor() {
+            alert("Guardando en Google Sheets...");
+        }
+        lucide.createIcons();
+    </script>
+</body>
+</html>

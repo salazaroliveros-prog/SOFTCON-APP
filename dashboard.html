@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOFTCON-MYS | Dashboard</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBEG-vUUhtL91-w-nq6KTczk05fXJJb0BI&callback=initMap" async defer></script>
+    <style>
+        /* Estilos para la barra lateral de navegación */
+        .sidebar-menu { position: fixed; top: 80px; left: 15px; display: flex; flex-direction: column; gap: 12px; z-index: 1000; }
+        .menu-btn { background: #002344; color: #e1ad01; padding: 12px; border-radius: 18px; box-shadow: 0 8px 15px rgba(0,0,0,0.3); display: flex; flex-direction: column; align-items: center; transition: all 0.3s; width: 65px; cursor: pointer; border: 1px solid rgba(225,173,1,0.2); }
+        .menu-btn:hover { transform: translateX(5px) scale(1.05); background: #003a70; }
+        .menu-btn span { font-size: 8px; font-weight: 800; margin-top: 4px; text-transform: uppercase; color: white; }
+        .kpi-card { background: white; padding: 20px; border-radius: 2rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border-bottom: 4px solid #002344; text-align: center; }
+        canvas { max-height: 220px !important; }
+        .kpi-card.border-blue-600 { border-bottom: 4px solid #2563eb; }
+        .kpi-card.border-red-600 { border-bottom: 4px solid #dc2626; }
+        .kpi-card.border-yellow-500 { border-bottom: 4px solid #eab308; }
+        .kpi-card.border-emerald-500 { border-bottom: 4px solid #10b981; }
+        @media (max-width: 900px) {
+            .sidebar-menu { left: 2px; top: 60px; }
+            .menu-btn { width: 44px; font-size: 9px; }
+            .menu-btn span { font-size: 7px; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans">
+    <div class="sidebar-menu">
+        <button onclick="location.href='proyectos.html'" class="menu-btn"><i data-lucide="layout"></i><span>Proy</span></button>
+        <button onclick="location.href='apu.html'" class="menu-btn"><i data-lucide="calculator"></i><span>APU</span></button>
+        <button onclick="location.href='asistencia.html'" class="menu-btn"><i data-lucide="user-check"></i><span>Asist</span></button>
+        <button onclick="location.href='compras.html'" class="menu-btn"><i data-lucide="shopping-cart"></i><span>Compr</span></button>
+        <button onclick="location.href='finanzas.html'" class="menu-btn"><i data-lucide="wallet"></i><span>Finan</span></button>
+        <button onclick="location.href='bodega.html'" class="menu-btn"><i data-lucide="package"></i><span>Bodeg</span></button>
+        <button onclick="location.href='rrhh.html'" class="menu-btn"><i data-lucide="users"></i><span>RRHH</span></button>
+    </div>
+
+    <nav class="bg-[#002344] text-white p-5 flex justify-between items-center shadow-2xl sticky top-0 z-[500]">
+        <div class="ml-24">
+            <h1 class="text-2xl font-black italic tracking-tighter">SOFTCON-MYS</h1>
+            <p class="text-[10px] text-yellow-500 font-bold tracking-[4px] uppercase">Construyendo tu Futuro</p>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="hidden md:flex flex-col items-end">
+                <span class="text-[10px] font-bold text-green-400">● SISTEMA ACTIVO</span>
+                <span id="reloj" class="text-xs font-mono text-slate-300"></span>
+            </div>
+            <button onclick="cerrarSesion()" class="bg-red-600 px-5 py-2 rounded-2xl text-xs font-black shadow-lg hover:bg-red-700 transition-all uppercase">Salir</button>
+        </div>
+    </nav>
+
+    <main class="p-4 max-w-7xl mx-auto">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="kpi-card border-blue-600">
+                <p class="text-[10px] font-black text-slate-400 uppercase">Proyectos Activos</p>
+                <h2 id="kpi-proyectos" class="text-3xl font-black text-[#002344]">0</h2>
+            </div>
+            <div class="kpi-card border-red-600">
+                <p class="text-[10px] font-black text-slate-400 uppercase">Días de Retraso</p>
+                <h2 id="kpi-retraso" class="text-3xl font-black text-red-600">0</h2>
+            </div>
+            <div class="kpi-card border-yellow-500">
+                <p class="text-[10px] font-black text-slate-400 uppercase">Tasa Firmas Contrato</p>
+                <div class="w-full bg-slate-200 h-3 rounded-full mt-4 overflow-hidden">
+                    <div id="progreso-firmas" class="bg-yellow-500 h-full transition-all duration-1000" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="kpi-card border-emerald-500">
+                <p class="text-[10px] font-black text-slate-400 uppercase">Utilidad Proyectada</p>
+                <h2 id="kpi-utilidad" class="text-3xl font-black text-emerald-600">0%</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-8 border-t-2 border-slate-200">
+            <div class="bg-white p-10 rounded-[3rem] shadow-2xl flex flex-col items-center justify-center">
+                <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-8">Avance Global Real</h3>
+                <div class="relative w-24 h-80 bg-slate-100 rounded-full border-8 border-[#002344] p-1 shadow-inner overflow-hidden">
+                    <div id="mercurio" class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-red-600 via-yellow-500 to-green-400 transition-all duration-1000" style="height: 0%;"></div>
+                </div>
+                <div class="mt-8">
+                    <span id="txtPorcentaje" class="text-5xl font-black text-[#002344]">0%</span>
+                </div>
+            </div>
+            <div class="lg:col-span-2 bg-white p-6 rounded-[3rem] shadow-2xl min-h-[450px]">
+                <h3 class="text-sm font-black text-[#002344] mb-4 flex items-center gap-3 uppercase">
+                    <i data-lucide="map-pin" class="text-red-600"></i> Geocercas y Ubicación de Equipo
+                </h3>
+                <div id="map" class="w-full h-[400px] rounded-[2rem] bg-slate-100 border-4 border-slate-50"></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <div class="bg-white p-6 rounded-[2rem] shadow-md">
+                <h3 class="text-sm font-black text-[#002344] mb-4">PRESUPUESTO: REAL VS PROG.</h3>
+                <canvas id="chartPresupuesto"></canvas>
+            </div>
+
+            <div class="bg-white p-6 rounded-[2rem] shadow-md text-center">
+                <h3 class="text-sm font-black text-[#002344] mb-4">MARGEN DE UTILIDAD</h3>
+                <canvas id="chartMargen"></canvas>
+            </div>
+
+            <div class="bg-white p-6 rounded-[2rem] shadow-md">
+                <h3 class="text-sm font-black text-[#002344] mb-4">TOP GASTO MATERIALES</h3>
+                <canvas id="chartPareto"></canvas>
+            </div>
+
+            <div class="bg-white p-6 rounded-[2rem] shadow-md">
+                <h3 class="text-sm font-black text-[#002344] mb-4">FLUJO DE CAJA MENSUAL</h3>
+                <canvas id="chartFlujo"></canvas>
+            </div>
+
+            <div class="bg-white p-6 rounded-[2rem] shadow-md">
+                <h3 class="text-sm font-black text-[#002344] mb-4">AVANCE FÍSICO (CURVA S)</h3>
+                <canvas id="chartCurvaS"></canvas>
+            </div>
+
+            <div class="bg-white p-6 rounded-[2rem] shadow-md">
+                <h3 class="text-sm font-black text-[#002344] mb-4">DISTRIBUCIÓN LABORAL</h3>
+                <canvas id="chartRRHH"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- LÓGICA DE CIERRE DE SESIÓN ---
+        function cerrarSesion() {
+            localStorage.clear();
+            window.location.href = "login.html";
+        }
+
+        // --- INICIALIZACIÓN DE GRÁFICAS ---
+        function initCharts() {
+            // Configuración común para que se vea profesional
+            Chart.defaults.font.family = 'sans-serif';
+            Chart.defaults.color = '#64748b';
+
+            // 1. Gráfica Presupuesto (Barras)
+            new Chart(document.getElementById('chartPresupuesto'), {
+                type: 'bar',
+                data: {
+                    labels: ['Obra A', 'Obra B', 'Obra C'],
+                    datasets: [
+                        { label: 'Programado', data: [50000, 80000, 45000], backgroundColor: '#cbd5e1' },
+                        { label: 'Real', data: [55000, 72000, 48000], backgroundColor: '#002344' }
+                    ]
+                }
+            });
+
+            // 2. Margen de Utilidad (Dona)
+            new Chart(document.getElementById('chartMargen'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Costos', 'Utilidad'],
+                    datasets: [{ data: [75, 25], backgroundColor: ['#f1f5f9', '#e1ad01'] }]
+                },
+                options: { cutout: '70%' }
+            });
+
+            // 3. Flujo de Caja (Área)
+            new Chart(document.getElementById('chartFlujo'), {
+                type: 'line',
+                data: {
+                    labels: ['Ene', 'Feb', 'Mar'],
+                    datasets: [
+                        { label: 'Entradas', data: [100, 150, 130], borderColor: '#22c55e', fill: true, backgroundColor: 'rgba(34, 197, 94, 0.1)' },
+                        { label: 'Salidas', data: [80, 120, 110], borderColor: '#ef4444', fill: true, backgroundColor: 'rgba(239, 68, 68, 0.1)' }
+                    ]
+                }
+            });
+
+            // 4. Curva S (Línea Doble)
+            new Chart(document.getElementById('chartCurvaS'), {
+                type: 'line',
+                data: {
+                    labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
+                    datasets: [
+                        { label: 'Teórico', data: [10, 30, 60, 100], borderColor: '#94a3b8', borderDash: [5, 5] },
+                        { label: 'Real', data: [8, 25, 55, 90], borderColor: '#002344', tension: 0.4 }
+                    ]
+                }
+            });
+
+            // 5. Pareto Materiales (Barras Horizontales)
+            new Chart(document.getElementById('chartPareto'), {
+                type: 'bar',
+                indexAxis: 'y',
+                data: {
+                    labels: ['Cemento', 'Acero', 'Arena', 'Madera', 'Pintura'],
+                    datasets: [{ label: 'Inversión Q', data: [25000, 18000, 12000, 8000, 5000], backgroundColor: '#002344' }]
+                }
+            });
+
+            // 6. Distribución RRHH (Pastel)
+            new Chart(document.getElementById('chartRRHH'), {
+                type: 'pie',
+                data: {
+                    labels: ['Albañil', 'Ayudante', 'Maestro'],
+                    datasets: [{ data: [15, 25, 5], backgroundColor: ['#002344', '#e1ad01', '#64748b'] }]
+                }
+            });
+        }
+
+        function initMap() {
+            // Ubicación central (ejemplo: Jutiapa, Guatemala)
+            const centro = { lat: 14.293, lng: -89.913 }; 
+            
+            const mapa = new google.maps.Map(document.getElementById("map"), {
+                zoom: 13,
+                center: centro,
+                styles: [ /* Aquí podemos poner un estilo "dark" o "silver" para que combine con SOFTCON */ ]
+            });
+
+            // Ejemplo: Marcador de un trabajador extraído de tu Google Sheet
+            const marcador = new google.maps.Marker({
+                position: { lat: 14.287, lng: -89.890 }, // Datos de la hoja de cálculo
+                map: mapa,
+                title: "Trabajador: Juan Pérez - Proyecto El Sol",
+                icon: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+            });
+        }
+
+        function renderizarMapa(datosTrabajadores) {
+            const mapa = new google.maps.Map(document.getElementById("map"), {
+                zoom: 15,
+                center: { lat: 14.293, lng: -89.913 }
+            });
+
+            datosTrabajadores.forEach(t => {
+                const [lat, lng] = t.coordenadas.split(',').map(Number);
+                // Lógica de color de la Geocerca
+                // Si el estado es "FUERA", el icono será rojo
+                const colorIcono = (t.validacion === "FUERA") 
+                    ? "http://maps.google.com/mapfiles/ms/icons/red-dot.png" 
+                    : "http://maps.google.com/mapfiles/ms/icons/green-dot.png";
+
+                new google.maps.Marker({
+                    position: { lat, lng },
+                    map: mapa,
+                    title: `${t.nombre} - ${t.validacion}`,
+                    icon: colorIcono
+                });
+            });
+        }
+
+        // CONFIGURACIÓN DE LA GEOCERCA (Centro de la Obra)
+        const PROYECTO_UBICACION = {
+            lat: 14.293, // Ejemplo: Coordenadas de tu obra en Jutiapa
+            lng: -89.913,
+            radioPermitido: 200 // Metros a la redonda permitidos
+        };
+
+        function marcarAsistencia() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(enviarDatosConGPS, errorGPS, {
+                    enableHighAccuracy: true // Activa GPS de alta precisión
+                });
+            } else {
+                alert("Tu navegador no soporta GPS. Contacta a soporte.");
+            }
+        }
+
+        function calcularDistancia(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // Radio de la Tierra en metros
+            const phi1 = lat1 * Math.PI/180;
+            const phi2 = lat2 * Math.PI/180;
+            const deltaPhi = (lat2-lat1) * Math.PI/180;
+            const deltaLambda = (lon2-lon1) * Math.PI/180;
+
+            const a = Math.sin(deltaPhi/2) * Math.sin(deltaPhi/2) +
+                      Math.cos(phi1) * Math.cos(phi2) *
+                      Math.sin(deltaLambda/2) * Math.sin(deltaLambda/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            return R * c; // Distancia en metros
+        }
+
+        function enviarDatosConGPS(posicion) {
+            const lat = posicion.coords.latitude;
+            const lng = posicion.coords.longitude;
+            
+            // Validar Geocerca
+            const distancia = calcularDistancia(lat, lng, PROYECTO_UBICACION.lat, PROYECTO_UBICACION.lng);
+            const estadoUbicacion = (distancia <= PROYECTO_UBICACION.radioPermitido) ? "DENTRO" : "FUERA";
+
+            const datos = {
+                destino: "REGISTRO_ASISTENCIA",
+                nombre: localStorage.getItem("usuario_nombre"),
+                coordenadas: `${lat},${lng}`,
+                distancia: distancia.toFixed(2),
+                validacion: estadoUbicacion, // Esto llegará a tu Dashboard
+                fecha: new Date().toLocaleString()
+            };
+
+            // Enviar a Google Apps Script
+            fetch(URL_DATABASE, {
+                method: 'POST',
+                body: JSON.stringify(datos)
+            }).then(() => {
+                if(estadoUbicacion === "FUERA") {
+                    alert("⚠️ MARCADO EXITOSO: Estás fuera del perímetro de la obra. El administrador ha sido notificado.");
+                } else {
+                    alert("✅ ASISTENCIA CORRECTA: Estás en tu puesto de trabajo.");
+                }
+            });
+        }
+
+        function renderCharts(data) {
+            new Chart(document.getElementById('chartPresupuesto'), {
+                type: 'bar',
+                data: { labels: ['Ene', 'Feb', 'Mar'], datasets: [{label: 'Prog', data: [100, 200, 300], backgroundColor: '#cbd5e1'}, {label: 'Real', data: [120, 180, 350], backgroundColor: '#002344'}]}
+            });
+            new Chart(document.getElementById('chartMargen'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Costos', 'Utilidad'],
+                    datasets: [{ data: [75, 25], backgroundColor: ['#f1f5f9', '#e1ad01'] }]
+                },
+                options: { cutout: '70%' }
+            });
+            new Chart(document.getElementById('chartFlujo'), {
+                type: 'line',
+                data: {
+                    labels: ['Ene', 'Feb', 'Mar'],
+                    datasets: [
+                        { label: 'Entradas', data: [100, 150, 130], borderColor: '#22c55e', fill: true, backgroundColor: 'rgba(34, 197, 94, 0.1)' },
+                        { label: 'Salidas', data: [80, 120, 110], borderColor: '#ef4444', fill: true, backgroundColor: 'rgba(239, 68, 68, 0.1)' }
+                    ]
+                }
+            });
+            new Chart(document.getElementById('chartCurvaS'), {
+                type: 'line',
+                data: {
+                    labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
+                    datasets: [
+                        { label: 'Teórico', data: [10, 30, 60, 100], borderColor: '#94a3b8', borderDash: [5, 5] },
+                        { label: 'Real', data: [8, 25, 55, 90], borderColor: '#002344', tension: 0.4 }
+                    ]
+                }
+            });
+            new Chart(document.getElementById('chartPareto'), {
+                type: 'bar',
+                indexAxis: 'y',
+                data: {
+                    labels: ['Cemento', 'Acero', 'Arena', 'Madera', 'Pintura'],
+                    datasets: [{ label: 'Inversión Q', data: [25000, 18000, 12000, 8000, 5000], backgroundColor: '#002344' }]
+                }
+            });
+            new Chart(document.getElementById('chartRRHH'), {
+                type: 'pie',
+                data: {
+                    labels: ['Albañil', 'Ayudante', 'Maestro'],
+                    datasets: [{ data: [15, 25, 5], backgroundColor: ['#002344', '#e1ad01', '#64748b'] }]
+                }
+            });
+        }
+
+        async function syncData() {
+            try {
+                const response = await fetch(`${URL_DATABASE}?accion=getDashboardData`);
+                const json = await response.json();
+                document.getElementById('kpi-proyectos').innerText = json.proyectosActivos;
+                document.getElementById('mercurio').style.height = json.avanceGlobal + "%";
+                document.getElementById('txtPorcentaje').innerText = json.avanceGlobal + "%";
+                document.getElementById('progreso-firmas').style.width = json.tasaFirmas + "%";
+            } catch (e) { console.log("Sincronizando con Google Sheets..."); }
+        }
+
+        window.onload = () => {
+            lucide.createIcons();
+            syncData();
+            renderCharts();
+            setInterval(() => { document.getElementById('reloj').innerText = new Date().toLocaleTimeString(); }, 1000);
+        };
+
+        // --- Service Worker y botón de instalación PWA ---
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('Service Worker registrado'))
+            .catch(err => console.log('Error al registrar SW', err));
+        }
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          deferredPrompt = e;
+          document.getElementById('installBtn').classList.remove('hidden');
+        });
+
+        document.getElementById('installBtn').addEventListener('click', async () => {
+          if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+              document.getElementById('installBtn').classList.add('hidden');
+            }
+            deferredPrompt = null;
+          }
+        });
+    </script>
+</body>
+</html>

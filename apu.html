@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WMCONSTRU - Calculadora IA de Materiales</title>
+    <style>
+        :root {
+            --azul-marino: #002344;
+            --amarillo-mostaza: #e1ad01;
+            --mostaza-oscuro: #b38b00;
+            --mostaza-transp: rgba(225, 173, 1, 0.75);
+            --blanco-transp: rgba(255, 255, 255, 0.95);
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+
+        body {
+            margin: 0; padding: 15px; min-height: 100vh;
+            background: linear-gradient(var(--mostaza-transp), var(--mostaza-transp)), 
+                        url('https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=2070&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+            display: flex; justify-content: center; align-items: flex-start;
+        }
+
+        .app-card {
+            width: 100%; max-width: 900px;
+            background: var(--blanco-transp);
+            border: 2px solid var(--azul-marino);
+            border-radius: 12px;
+            position: relative; overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            padding-bottom: 30px;
+        }
+
+        .marca-agua {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 200px; font-weight: 900; color: rgba(0, 35, 68, 0.04);
+            z-index: 0; pointer-events: none;
+        }
+
+        header {
+            background: white; padding: 20px; text-align: center;
+            border-bottom: 6px solid var(--amarillo-mostaza); position: relative; z-index: 1;
+        }
+
+        .logo-box { display: flex; justify-content: center; align-items: center; gap: 15px; }
+        .logo-box h1 { margin: 0; color: var(--azul-marino); font-size: 1.4rem; text-transform: uppercase; }
+        .separador-v { width: 3px; height: 35px; background-color: var(--amarillo-mostaza); }
+
+        .form-section { padding: 20px; position: relative; z-index: 1; }
+
+        .control-panel {
+            background: var(--azul-marino); color: white;
+            padding: 20px; border-radius: 8px; margin-bottom: 25px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+        }
+
+        label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 0.9rem; }
+        select, input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 1rem; }
+
+        .renglon-box {
+            background: white; border: 2px solid #ddd;
+            margin-bottom: 15px; border-radius: 8px; padding: 15px;
+            transition: 0.3s;
+        }
+
+        .renglon-box:hover { border-color: var(--amarillo-mostaza); }
+
+        .grid-renglon {
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 10px;
+        }
+
+        .badge-ia {
+            background: #e1f5fe; color: #0288d1;
+            padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;
+            display: inline-block; margin-bottom: 10px;
+        }
+
+        .analisis-ia {
+            background: #fdfae6; border-left: 5px solid var(--amarillo-mostaza);
+            margin-top: 15px; padding: 15px; font-size: 0.85rem;
+            display: none; /* Se activa al calcular */
+        }
+
+        .footer-totales {
+            background: #eee; padding: 20px; border-radius: 8px; margin-top: 20px;
+            text-align: right; border: 2px solid var(--azul-marino);
+        }
+
+        .acciones-finales {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px; margin-top: 25px;
+        }
+
+        button {
+            padding: 15px; border: none; border-radius: 6px; font-weight: bold;
+            text-transform: uppercase; cursor: pointer; color: white; transition: 0.2s;
+        }
+
+        .btn-calc { background: var(--mostaza-oscuro); width: 100%; margin-bottom: 10px; font-size: 1.1rem; }
+        .btn-csv { background: #2e7d32; }
+        .btn-pdf { background: #c62828; }
+        .btn-central { background: var(--azul-marino); }
+
+        @media (max-width: 600px) {
+            .control-panel, .grid-renglon { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="fixed top-0 left-0 w-full bg-[#002344] text-white flex justify-between items-center px-6 py-3 shadow-lg z-50">
+        <div class="flex items-center gap-2">
+            <i data-lucide="layout-dashboard" class="w-6 h-6 text-yellow-400"></i>
+            <span class="font-black tracking-tight text-lg">SOFTCON-MYS</span>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="window.location.href='dashboard.html'" 
+                class="bg-yellow-500 text-[#002344] p-2 rounded-full hover:scale-110 transition-transform flex items-center justify-center" title="Ir al Dashboard">
+                <i data-lucide="home" class="w-5 h-5"></i>
+            </button>
+            <button onclick="window.location.href='index.html'" 
+                class="bg-red-500 text-white p-2 rounded-full hover:scale-110 transition-transform flex items-center justify-center" title="Cerrar Sesión">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </nav>
+    <div class="h-16"></div>
+
+    <div class="app-card">
+        <div class="marca-agua">M&S</div>
+        <header>
+            <div class="logo-box">
+                <h1>Constructora WM</h1>
+                <div class="separador-v"></div>
+                <h1>M&S</h1>
+            </div>
+            <div style="font-size: 0.8rem; font-weight: bold; letter-spacing: 2px; color: #444; margin-top: 5px;">CUANTIFICADORA IA Y PRESUPUESTO</div>
+        </header>
+
+        <div class="form-section">
+            <div class="control-panel">
+                <div>
+                    <label>VINCULAR PROYECTO (ID):</label>
+                    <select id="projSelect">
+                        <option value="">Cargando proyectos locales...</option>
+                    </select>
+                </div>
+                <div>
+                    <label>TIPO DE CONSTRUCCIÓN:</label>
+                    <select id="tipoObra" onchange="actualizarRenglones()">
+                        <option value="">Seleccione tipo...</option>
+                        <option value="RESIDENCIAL">RESIDENCIAL</option>
+                        <option value="CIVIL">CIVIL PÚBLICA</option>
+                        <option value="INDUSTRIAL">INDUSTRIAL (Build to Suit)</option>
+                        <option value="COMERCIAL">COMERCIAL</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="subOpciones" style="margin-bottom: 20px; display: none;">
+                <label id="labelSubOpcion">SISTEMA CONSTRUCTIVO / CATEGORÍA:</label>
+                <select id="subSelect" onchange="generarFormulario()"></select>
+            </div>
+
+            <div id="contenedorRenglones">
+                </div>
+
+            <button class="btn-calc" onclick="ejecutarIA()">🤖 CALCULAR CON IA Y GENERAR DESGLOSE</button>
+
+            <div class="footer-totales" id="resumenTotales">
+                <h3 style="margin:0; color: var(--azul-marino);">RESUMEN GENERAL</h3>
+                <p>Costo Total Estimado: <span id="totalCosto">Q 0.00</span></p>
+                <p>Tiempo de Ejecución: <span id="totalTiempo">0 días</span></p>
+            </div>
+
+            <div class="acciones-finales">
+                <button class="btn-csv" onclick="exportar('csv')">📄 EXPORTAR CSV</button>
+                <button class="btn-pdf" onclick="exportar('pdf')">📕 EXPORTAR PDF</button>
+                <button class="btn-central" onclick="enviarCentral()">📡 ENVIAR A CENTRAL</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const renglonesData = {
+        "RESIDENCIAL": {
+            "Tradicional": ["Preliminares", "Cimentación", "Estructura Concreto", "Muros", "Instalaciones", "Acabados"],
+            "Estructura Metálica": ["Preliminares", "Cimentación", "Montaje Acero Principal", "Cerchas de Cubierta", "Lámina y Sellado", "Pintura Anticorrosiva"]
+        },
+        "CIVIL": {
+            "Vial": ["Topografía", "Movimiento de Tierras", "Sub-base y Base", "Pavimentación", "Drenajes Pluviales"],
+            "Edificación Pública": ["Cimentación", "Estructura", "Instalaciones Hidrosanitarias", "Acabados", "Mobiliario Urbano"]
+        },
+        "INDUSTRIAL": {
+            "Naves y Bodegas": ["Preparación Suelo", "Estructura Acero Pesado", "Entrepisos Industriales", "Cubiertas Especiales", "Sistemas Eléctricos Industriales"],
+            "Tanques y Plantas": ["Cimentación Especial", "Montaje Tanques Elevados", "Tuberías de Proceso", "Obras Civiles de Apoyo"]
+        },
+        "COMERCIAL": {
+            "Centros Comerciales": ["Movimiento Tierras", "Zapatas y Columnas", "Losas Entrepiso", "Fachadas Muro Cortina", "HVAC Aire Acondicionado"],
+            "Oficinas/Torres": ["Estructura Hormigón", "División Drywall", "Sistemas Eléctricos", "Acabados de Lujo"]
+        }
+    };
+
+    window.onload = () => {
+        const db = JSON.parse(localStorage.getItem('softcon_db')) || [];
+        const sel = document.getElementById('projSelect');
+        if(db.length > 0) sel.innerHTML = db.map(p => `<option value="${p.id}">${p.id} - ${p.proyecto}</option>`).join('');
+    };
+
+    function actualizarRenglones() {
+        const tipo = document.getElementById('tipoObra').value;
+        const sub = document.getElementById('subOpciones');
+        const subSelect = document.getElementById('subSelect');
+        
+        if(!tipo) { sub.style.display = 'none'; return; }
+        
+        sub.style.display = 'block';
+        const opciones = Object.keys(renglonesData[tipo]);
+        subSelect.innerHTML = opciones.map(o => `<option value="${o}">${o}</option>`).join('');
+        generarFormulario();
+    }
+
+    function generarFormulario() {
+        const tipo = document.getElementById('tipoObra').value;
+        const sub = document.getElementById('subSelect').value;
+        const lista = renglonesData[tipo][sub];
+        const contenedor = document.getElementById('contenedorRenglones');
+        
+        contenedor.innerHTML = lista.map((name, index) => `
+            <div class="renglon-box">
+                <span class="badge-ia">PARÁMETRO IA ACTIVO</span>
+                <div class="grid-renglon">
+                    <div>
+                        <label>RENGLÓN ${index+1}</label>
+                        <input type="text" value="${name}" readonly>
+                    </div>
+                    <div>
+                        <label>CANTIDAD</label>
+                        <input type="number" class="qty" placeholder="0" oninput="marcarSucio()">
+                    </div>
+                    <div>
+                        <label>UNIDAD</label>
+                        <select class="unit">
+                            <option value="m2">m2</option>
+                            <option value="m3">m3</option>
+                            <option value="ml">ml</option>
+                            <option value="global">Global</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>PRECIO UNIT. (Est.)</label>
+                        <input type="number" class="price" placeholder="IA cargando...">
+                    </div>
+                </div>
+                <div class="analisis-ia" id="ia-${index}"></div>
+            </div>
+        `).join('');
+    }
+
+    function ejecutarIA() {
+        // Simulación de procesamiento de IA y descarga de rendimientos
+        const boxes = document.querySelectorAll('.renglon-box');
+        let total = 0;
+        let diasMax = 0;
+
+        boxes.forEach((box, i) => {
+            const qty = box.querySelector('.qty').value || 0;
+            const iaBox = document.getElementById(`ia-${i}`);
+            
+            // Simulación de rendimientos descargados por IA
+            const rendimiento = 10; // 10 unidades por día
+            const costoSugerido = Math.floor(Math.random() * 500) + 100;
+            const subtotal = qty * costoSugerido;
+            const dias = Math.ceil(qty / rendimiento);
+            
+            box.querySelector('.price').value = costoSugerido;
+            total += subtotal;
+            diasMax += dias;
+
+            iaBox.style.display = "block";
+            iaBox.innerHTML = `
+                <strong>🤖 DESGLOSE IA (Explosión de Materiales):</strong><br>
+                - Materiales Principales: 40%, Mano de Obra: 45%, Otros: 15%<br>
+                - Rendimiento calculado para este departamento: ${rendimiento} unid/día.<br>
+                - Tiempo estimado para este renglón: ${dias} días.<br>
+                - <strong>Insumos Sugeridos:</strong> Cemento, Agregados, Acero Grado 60.
+            `;
+        });
+
+        document.getElementById('totalCosto').innerText = "Q " + total.toLocaleString();
+        document.getElementById('totalTiempo').innerText = diasMax + " DÍAS HÁBILES";
+    }
+
+    function marcarSucio() { /* Indica que hubo cambios para recalcular */ }
+
+    function enviarCentral() {
+        alert("Sincronizando Cuantificación con Central...\n\n1. Enviando desglose unitario.\n2. Inyectando Plazo de " + document.getElementById('totalTiempo').innerText + " al Proyecto.\n3. Estado actualizado a: EJECUCIÓN.");
+    }
+
+    function exportar(tipo) {
+        alert("Generando archivo " + tipo.toUpperCase() + " con membrete M&S...");
+    }
+</script>
+<!-- Botón flotante eliminado, navbar superior lo reemplaza -->
+    lucide.createIcons();
+
+<script>
+    const URL_DATABASE = "https://script.google.com/macros/s/AKfycby_E2nehogQhwLgx7pEExKAGy6lcmEG8zV5O5SBQ016dzXio_QE5pGOn5d7_ugABD0gYg/exec";
+</script>
+</body>
+</html>

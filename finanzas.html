@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FINANZAS - SOFTCON-MYS</title>
+    <style>
+        :root {
+            --azul: #002344;
+            --mostaza: #e1ad01;
+            --peligro: #d32f2f;
+            --exito: #2e7d32;
+            --bg: #f4f7f6;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
+        
+        /* CONTENEDORES */
+        .dashboard { max-width: 1300px; margin: auto; display: grid; grid-template-columns: 1fr 350px; gap: 20px; }
+        .panel { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-top: 5px solid var(--azul); }
+        
+        /* CAJAS DE UTILIDAD */
+        .utilidad-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .caja { padding: 15px; border-radius: 10px; text-align: center; color: white; }
+        .caja-ingreso { background: var(--azul); }
+        .caja-total { background: var(--exito); }
+        .monto-display { font-size: 1.5rem; font-weight: bold; display: block; margin-top: 5px; }
+
+        /* TABLAS DINÁMICAS */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.85rem; }
+        th { background: #f0f4f8; color: var(--azul); padding: 12px; text-align: left; border-bottom: 3px solid var(--mostaza); }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+
+        /* ALERTAS */
+        .alerta { padding: 10px; border-radius: 6px; font-weight: bold; margin-bottom: 15px; font-size: 0.8rem; }
+        .alerta-roja { background: #ffebee; color: var(--peligro); border: 1px solid var(--peligro); }
+        .alerta-naranja { background: #fff3e0; color: #e65100; border: 1px solid #ffb74d; }
+
+        /* INPUTS */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.75rem; font-weight: bold; margin-bottom: 5px; color: var(--azul); }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+        .btn-azul { background: var(--azul); color: white; }
+        .btn-mostaza { background: var(--mostaza); color: var(--azul); }
+
+        .progress-bar { background: #eee; height: 8px; border-radius: 4px; margin-top: 5px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--exito); }
+    </style>
+</head>
+<body>
+    <nav class="fixed top-0 left-0 w-full bg-[#002344] text-white flex justify-between items-center px-6 py-3 shadow-lg z-50">
+        <div class="flex items-center gap-2">
+            <i data-lucide="layout-dashboard" class="w-6 h-6 text-yellow-400"></i>
+            <span class="font-black tracking-tight text-lg">SOFTCON-MYS</span>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="window.location.href='dashboard.html'" 
+                class="bg-yellow-500 text-[#002344] p-2 rounded-full hover:scale-110 transition-transform flex items-center justify-center" title="Ir al Dashboard">
+                <i data-lucide="home" class="w-5 h-5"></i>
+            </button>
+            <button onclick="window.location.href='index.html'" 
+                class="bg-red-500 text-white p-2 rounded-full hover:scale-110 transition-transform flex items-center justify-center" title="Cerrar Sesión">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </nav>
+    <div class="h-16"></div>
+
+<div style="text-align: center; margin-bottom: 25px;">
+    <h1 style="color: var(--azul); margin: 0;">SOFTCON-MYS: CONTROL FINANCIERO Y UTILIDADES</h1>
+    <small style="color: var(--mostaza-dark); font-weight: bold; letter-spacing: 2px;">"CONSTRUYENDO TU FUTURO"</small>
+</div>
+
+<div class="dashboard">
+    
+    <div class="panel">
+        <h2>📊 Estado de Proyectos y Presupuesto</h2>
+        
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+                <label>SELECCIONAR PROYECTO ACTIVO</label>
+                <select id="selectProy" onchange="cargarRenglones()">
+                    <option value="">-- Seleccione Proyecto --</option>
+                    <option value="1">Residencial Modelo A (Q 250,000)</option>
+                    <option value="2">Muro Perimetral Sur (Q 45,000)</option>
+                </select>
+            </div>
+            <div>
+                <label>RESTANTE POR COBRAR AL CLIENTE</label>
+                <input type="text" id="cobroPendiente" readonly style="background: #f9f9f9; font-weight: bold; color: var(--peligro);">
+            </div>
+        </div>
+
+        <div id="alertaTemprana" style="display: none;"></div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Renglón (Desde Calculadora)</th>
+                    <th>Presupuesto (Q)</th>
+                    <th>Gasto Real (Q)</th>
+                    <th>Ahorro/Perdida</th>
+                    <th>% Ejecución</th>
+                </tr>
+            </thead>
+            <tbody id="tablaRenglones">
+                </tbody>
+        </table>
+    </div>
+
+    <div class="panel" style="border-top-color: var(--mostaza);">
+        <h2>💰 Mi Caja Personal</h2>
+        
+        <div class="utilidad-grid">
+            <div class="caja caja-ingreso">
+                <small>Utilidad del Pago</small>
+                <span class="monto-display" id="utilidadPago">Q 0.00</span>
+            </div>
+            <div class="caja caja-total">
+                <small>Utilidad Total Acumulada</small>
+                <span class="monto-display" id="utilidadAcumulada">Q 15,400.00</span>
+            </div>
+        </div>
+
+        <div style="background: #f0f4f8; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <label>INGRESAR PAGO DE CLIENTE (ABONO)</label>
+            <input type="number" id="montoAbono" placeholder="Monto Q" style="margin-bottom: 10px;">
+            <button class="btn btn-azul" onclick="procesarAbono()">Registrar Abono</button>
+            <small style="font-size: 0.65rem; color: #666; display: block; margin-top: 5px;">* El sistema restará el 25% automáticamente para tu caja.</small>
+        </div>
+
+        <hr>
+
+        <div style="margin-top: 20px;">
+            <h3>Gastos Personales / Inversión</h3>
+            <div class="form-group">
+                <label>CONCEPTO</label>
+                <input type="text" id="gastoDesc" placeholder="Ej. Pago de Camioneta">
+            </div>
+            <div class="form-group">
+                <label>MONTO DEL GASTO</label>
+                <input type="number" id="gastoMonto" placeholder="Q 0.00">
+            </div>
+            <button class="btn btn-mostaza" onclick="registrarGastoPersonal()">Registrar Gasto Personal</button>
+        </div>
+
+        <div id="statusPersonal" style="margin-top: 20px;"></div>
+    </div>
+</div>
+
+<script>
+    // Datos simulados que vendrían de la Herramienta 1 y 3
+    const proyectos = {
+        "1": {
+            total: 250000,
+            pendiente: 150000,
+            renglones: [
+                {nombre: "Cimentación", pres: 45000, real: 42000},
+                {nombre: "Mampostería", pres: 80000, real: 85000},
+                {nombre: "Instalaciones", pres: 30000, real: 12000}
+            ]
+        },
+        "2": {
+            total: 45000,
+            pendiente: 10000,
+            renglones: [
+                {nombre: "Movimiento Tierras", pres: 5000, real: 4800},
+                {nombre: "Muro Bloque", pres: 35000, real: 38000}
+            ]
+        }
+    };
+
+    let utilidadTotal = 15400;
+
+    function cargarRenglones() {
+        const id = document.getElementById('selectProy').value;
+        const tabla = document.getElementById('tablaRenglones');
+        const alertaBox = document.getElementById('alertaTemprana');
+        tabla.innerHTML = "";
+        alertaBox.style.display = "none";
+
+        if(!id) return;
+
+        const proy = proyectos[id];
+        document.getElementById('cobroPendiente').value = "Q " + proy.pendiente.toLocaleString();
+
+        proy.renglones.forEach(r => {
+            const diferencia = r.pres - r.real;
+            const porcentaje = (r.real / r.pres) * 100;
+            const colorDif = diferencia < 0 ? 'var(--peligro)' : 'var(--exito)';
+            
+            // Lógica de Alertas Tempranas
+            if(porcentaje > 90 && porcentaje <= 100) {
+                alertaBox.innerHTML = `<div class="alerta alerta-naranja">⚠️ ALERTA: El renglón ${r.nombre} está al ${porcentaje.toFixed(0)}% del presupuesto.</div>`;
+                alertaBox.style.display = "block";
+            } else if(porcentaje > 100) {
+                alertaBox.innerHTML = `<div class="alerta alerta-roja">🚨 PÉRDIDA DETECTADA: El renglón ${r.nombre} ha superado el presupuesto asignado.</div>`;
+                alertaBox.style.display = "block";
+            }
+
+            tabla.innerHTML += `
+                <tr>
+                    <td><strong>${r.nombre}</strong></td>
+                    <td>Q ${r.pres.toLocaleString()}</td>
+                    <td>Q ${r.real.toLocaleString()}</td>
+                    <td style="color: ${colorDif}; font-weight: bold;">Q ${diferencia.toLocaleString()}</td>
+                    <td>
+                        ${porcentaje.toFixed(0)}%
+                        <div class="progress-bar"><div class="progress-fill" style="width: ${porcentaje > 100 ? 100 : porcentaje}%; background: ${porcentaje > 100 ? 'var(--peligro)' : 'var(--exito)'}"></div></div>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function procesarAbono() {
+        const monto = parseFloat(document.getElementById('montoAbono').value);
+        if(!monto || monto <= 0) return alert("Ingrese un monto válido");
+
+        const utilidadDelPago = monto * 0.25;
+        utilidadTotal += utilidadDelPago;
+
+        document.getElementById('utilidadPago').innerText = "Q " + utilidadDelPago.toLocaleString();
+        document.getElementById('utilidadAcumulada').innerText = "Q " + utilidadTotal.toLocaleString();
+        
+        alert(`ÉXITO: Se han restado Q ${monto.toLocaleString()} de la deuda del cliente.\n\nUtilidad generada para usted: Q ${utilidadDelPago.toLocaleString()}`);
+        document.getElementById('montoAbono').value = "";
+    }
+
+    function registrarGastoPersonal() {
+        const monto = parseFloat(document.getElementById('gastoMonto').value);
+        const desc = document.getElementById('gastoDesc').value;
+        const status = document.getElementById('statusPersonal');
+
+        if(!monto || !desc) return alert("Complete los datos del gasto");
+
+        if(monto > utilidadTotal) {
+            status.innerHTML = `<div class="alerta alerta-roja">❌ GASTO DENEGADO: El gasto de "${desc}" por Q ${monto} supera su utilidad total acumulada. No toque capital operativo.</div>`;
+            return;
+        }
+
+        if(monto > (utilidadTotal * 0.8)) {
+            status.innerHTML = `<div class="alerta alerta-naranja">⚠️ ADVERTENCIA: Este gasto consume casi el 80% de su utilidad disponible. Piénselo dos veces.</div>`;
+        } else {
+            status.innerHTML = `<div class="alerta" style="background:#e8f5e9; color:var(--exito)">✅ GASTO PERMITIDO: Se ha descontado de su 25% de utilidad.</div>`;
+        }
+
+        utilidadTotal -= monto;
+        document.getElementById('utilidadAcumulada').innerText = "Q " + utilidadTotal.toLocaleString();
+        document.getElementById('gastoMonto').value = "";
+        document.getElementById('gastoDesc').value = "";
+    }
+</script>
+<!-- Botón flotante eliminado, navbar superior lo reemplaza -->
+    lucide.createIcons();
+
+<script>
+    const URL_DATABASE = "https://script.google.com/macros/s/AKfycby_E2nehogQhwLgx7pEExKAGy6lcmEG8zV5O5SBQ016dzXio_QE5pGOn5d7_ugABD0gYg/exec";
+</script>
+</body>
+</html>

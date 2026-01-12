@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOFTCON-MYS | Compras</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-100 p-4 text-slate-800">
+    <nav class="fixed top-0 left-0 w-full bg-[#002344] text-white flex justify-between items-center px-6 py-3 shadow-lg z-50">
+        <div class="flex items-center gap-2">
+            <i data-lucide="layout-dashboard" class="w-6 h-6 text-yellow-400"></i>
+            <span class="font-black tracking-tight text-lg">SOFTCON-MYS</span>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="window.location.href='dashboard.html'" 
+                class="bg-yellow-500 text-[#002344] p-2 rounded-full hover:scale-110 transition-transform flex items-center justify-center" title="Ir al Dashboard">
+                <i data-lucide="home" class="w-5 h-5"></i>
+            </button>
+            <button onclick="window.location.href='index.html'" 
+                class="bg-red-500 text-white p-2 rounded-full hover:scale-110 transition-transform flex items-center justify-center" title="Cerrar Sesión">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </nav>
+    <div class="h-16"></div>
+
+    <div class="max-w-md mx-auto space-y-6">
+        <div class="bg-white p-6 rounded-[2.5rem] shadow-xl">
+            <h3 class="text-xs font-black text-yellow-600 uppercase mb-4 tracking-widest">Nueva Cotización</h3>
+            <form id="formCompra" class="space-y-4">
+                <input type="text" id="orden" placeholder="Nombre de la Orden" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none focus:ring-2 focus:ring-yellow-500">
+                <input type="text" id="material" placeholder="Material (Ej: Cemento Gris)" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none focus:ring-2 focus:ring-yellow-500">
+                <input type="number" id="precio" placeholder="Precio Ofertado Q" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none focus:ring-2 focus:ring-yellow-500">
+                
+                <button type="submit" class="w-full bg-[#002344] text-white p-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-black transition">
+                    <i data-lucide="zap" class="w-4 h-4 text-yellow-400"></i> ANALIZAR PRECIO
+                </button>
+            </form>
+        </div>
+
+        <div id="alertaIA" class="hidden bg-red-100 border-l-8 border-red-600 p-6 rounded-3xl">
+            <h4 class="text-red-800 font-black text-sm">ALERTA DE SOBRECOSTO</h4>
+            <p id="msgIA" class="text-xs text-red-700"></p>
+        </div>
+    </div>
+
+    <script>
+        const URL_DATABASE = "https://script.google.com/macros/s/AKfycbxACLXsnOalHL6GE9I0x3JrbXZ8lzrnRBi8RPW-tTjhTPKzFoYzjoGnBQoO0OiSX7L57g/exec";
+
+        document.getElementById('formCompra').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                destino: "COTIZACION",
+                orden: document.getElementById('orden').value,
+                material: document.getElementById('material').value,
+                precioOfertado: parseFloat(document.getElementById('precio').value),
+                ordenCompra: "TEMP-" + Math.floor(Math.random() * 1000)
+            };
+
+            fetch(URL_DATABASE, { method: 'POST', body: JSON.stringify(data) })
+            .then(res => res.json())
+            .then(info => {
+                if(info.status === "ALERTA_SOBRECOSTO") {
+                    document.getElementById('alertaIA').classList.remove('hidden');
+                    document.getElementById('msgIA').innerText = `El precio es Q${info.diferencia} más caro que la última compra. ¿Deseas continuar?`;
+                } else {
+                    alert("✅ Precio óptimo. Cotización guardada en Comparativa.");
+                    document.getElementById('alertaIA').classList.add('hidden');
+                }
+            });
+        });
+        lucide.createIcons();
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ÓRDENES DE COMPRA - SOFTCON-MYS</title>
+    <style>
+        :root {
+            --azul: #002344;
+            --mostaza: #e1ad01;
+            --exito: #2e7d32;
+            --alerta: #ff9800;
+            --bg: #f4f7f6;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .oc-container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 15px; border-top: 8px solid var(--azul); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        
+        .header-oc { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
+        .logo-box h1 { margin: 0; color: var(--azul); font-size: 1.5rem; }
+        
+        /* FORMULARIO JEFE */
+        .seccion-envio { background: #f9f9f9; padding: 20px; border-radius: 10px; margin-bottom: 30px; border: 1px solid #ddd; }
+        .grid-campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        
+        label { display: block; font-size: 0.75rem; font-weight: bold; color: var(--azul); margin-bottom: 5px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+
+        /* TABLA TIPO FACTURA */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: var(--azul); color: white; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+
+        .comparador-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+        .mejor-precio { background: #e8f5e9; color: var(--exito); border: 1px solid var(--exito); }
+
+        .btn { padding: 12px 25px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
+        .btn-enviar { background: var(--azul); color: white; }
+        .btn-devolver { background: var(--mostaza); color: var(--azul); width: 100%; margin-top: 20px; }
+        .btn-entregado { background: var(--exito); color: white; padding: 5px 10px; font-size: 0.7rem; }
+
+        /* VISTA ORDEN (SIMULADA) */
+        #vista-orden { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 2000; padding: 40px; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+<div class="oc-container">
+    <div class="header-oc">
+        <div class="logo-box">
+            <h1>SOFTCON-MYS: ÓRDEN DE COMPRA</h1>
+            <small style="color:var(--mostaza); font-weight:bold;">CONSTRUYENDO TU FUTURO</small>
+        </div>
+        <div style="text-align: right;">
+            <div id="status-compra" style="color: var(--alerta); font-weight: bold;">ESTADO: REQUISICIÓN EN BORRADOR</div>
+        </div>
+    </div>
+
+    <div class="seccion-envio">
+        <div class="grid-campos">
+            <div>
+                <label>ORDEN REGISTRADA</label>
+                <select id="provSelect" onchange="checkNewProv(this.value)">
+                    <option value="1">Ferretería El Éxito (+502 5555-0101)</option>
+                    <option value="2">Distribuidora Central (+502 4444-0202)</option>
+                    <option value="nuevo">+ AGREGAR NUEVA ORDEN</option>
+                </select>
+            </div>
+            <div id="manualProv" style="display:none;">
+                <label>NOMBRE Y TELÉFONO NUEVO</label>
+                <input type="text" placeholder="Nombre / Celular">
+            </div>
+            <div>
+                <label>PROYECTO DESTINO</label>
+                <select>
+                    <option>Residencial Modelo A</option>
+                    <option>Bodega Industrial X</option>
+                </select>
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+                <button class="btn btn-enviar" onclick="enviarLinkProveedor()">📩 ENVIAR REQUERIMIENTO (LINK)</button>
+            </div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>CANTIDAD</th>
+                <th>DESCRIPCIÓN DEL MATERIAL</th>
+                <th>DISPONIBILIDAD (PROV)</th>
+                <th>PRECIO UNITARIO (Q)</th>
+                <th>TOTAL</th>
+                <th>ACCIÓN FINAL</th>
+            </tr>
+        </thead>
+        <tbody id="items-tabla">
+            <tr>
+                <td>50</td>
+                <td>Hierro de 3/8" Grado 40</td>
+                <td id="disp-1"><small>Esperando respuesta...</small></td>
+                <td id="precio-1">Q 0.00</td>
+                <td id="total-1">Q 0.00</td>
+                <td><button class="btn-entregado" style="opacity:0.5" disabled>ESPERANDO</button></td>
+            </tr>
+            <tr>
+                <td>100</td>
+                <td>Sacos de Cemento UGC</td>
+                <td id="disp-2"><span class="comparador-badge mejor-precio">✓ MÁS BARATO AQUÍ</span></td>
+                <td id="precio-2">Q 82.00</td>
+                <td id="total-2">Q 8,200.00</td>
+                <td><button class="btn-entregado" onclick="confirmarEntrega(this)">MARCAR ENTREGADO</button></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="margin-top: 30px; border-top: 2px solid var(--azul); padding-top: 15px; text-align: right;">
+        <h2 id="granTotal">TOTAL ORDEN: Q 8,200.00</h2>
+        <p style="font-size: 0.8rem; color: #666;">* Al marcar como 'Entregado', los materiales ingresarán automáticamente a la Herramienta de Bodega.</p>
+        <button class="btn btn-enviar" style="margin-top:20px;" onclick="finalizarCompra({ ordenCompra: 'OC-2026-042', orden: 'Ferretería El Éxito', proyecto: 'Residencial Modelo A', items: [{ nombre: 'Sacos de Cemento UGC', cantidad: 100, precio: 82.00 }], total: 8200 })">CERRAR COMPRA Y GENERAR PDF</button>
+        <button class="btn btn-enviar" style="margin-top:20px;" onclick="finalizarCompraRecolectarDatos()">CERRAR COMPRA Y GENERAR PDF</button>
+    </div>
+</div>
+
+<div id="vista-orden">
+    <h2 style="color:var(--azul)">REQUERIMIENTO DE COMPRA #OC-772</h2>
+    <p>Por favor, marque los productos que tiene en existencia y coloque su mejor precio:</p>
+    <hr>
+    <table>
+        <thead>
+            <tr>
+                <th>MATERIAL</th>
+                <th>¿LO TIENE?</th>
+                <th>PRECIO UNITARIO (Q)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Hierro de 3/8" Grado 40 (50 unidades)</td>
+                <td><input type="checkbox" style="width:25px; height:25px;"></td>
+                <td><input type="number" placeholder="Ingrese su precio"></td>
+            </tr>
+            <tr>
+                <td>Sacos de Cemento UGC (100 unidades)</td>
+                <td><input type="checkbox" style="width:25px; height:25px;"></td>
+                <td><input type="number" placeholder="Ingrese su precio"></td>
+            </tr>
+        </tbody>
+    </table>
+    <button class="btn btn-devolver" onclick="proveedorDevuelve()">DEVOLVER INFORMACIÓN AL JEFE</button>
+</div>
+
+<!-- Botón flotante eliminado, navbar superior lo reemplaza -->
+    lucide.createIcons();
+
+<script>
+            function finalizarCompraRecolectarDatos() {
+                // Obtener número de orden (puede venir de la URL, aquí ejemplo fijo)
+                const ordenCompra = 'OC-2026-042';
+                // Orden seleccionada
+                const orden = document.getElementById('provSelect').options[document.getElementById('provSelect').selectedIndex].text;
+                // Proyecto destino
+                const proyecto = document.querySelector('.grid-campos select').value;
+                // Recorrer la tabla de materiales
+                const items = [];
+                let total = 0;
+                document.querySelectorAll('#items-tabla tr').forEach(row => {
+                    const nombre = row.children[1]?.innerText;
+                    const cantidad = parseFloat(row.children[0]?.innerText);
+                    const precio = parseFloat(row.children[3]?.innerText.replace('Q','').replace(',','').trim());
+                    if (nombre && !isNaN(cantidad) && !isNaN(precio)) {
+                        items.push({ nombre, cantidad, precio });
+                        total += cantidad * precio;
+                    }
+                });
+                finalizarCompra({ ordenCompra, orden, proyecto, items, total });
+            }
+        async function finalizarCompra(datosAprobados) {
+            const payload = {
+                destino: "FINALIZAR_COMPRA", // Dispara el PDF de la OC y actualiza historial
+                ...datosAprobados
+            };
+            const res = await fetch(URL_DATABASE, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            const resultado = await res.json();
+            window.open(resultado.link, '_blank'); // Abre el PDF de la orden de compra
+        }
+    function checkNewProv(val) {
+        document.getElementById('manualProv').style.display = (val === 'nuevo') ? 'block' : 'none';
+    }
+
+    function enviarLinkProveedor() {
+        const ordenCompra = "OC-2026-042"; // Debe ser dinámico si tienes varias órdenes
+        const prov = document.getElementById('provSelect').options[document.getElementById('provSelect').selectedIndex].text;
+        // Aquí puedes enviar datosCotizacion al backend si lo deseas
+
+        // Genera el link real para la orden
+        const linkOrden = window.location.origin + "/orden.html?orden=" + encodeURIComponent(ordenCompra);
+
+        // Simula el envío del link a la orden (puedes usar fetch para enviar por email/SMS)
+        alert("SISTEMA: Generando Link único...\n\nEnviando notificación push/SMS a: " + prov + "\n\nLink enviado: " + linkOrden);
+
+        // Simula que la orden abre el link
+        window.open(linkOrden, "_blank");
+    }
+
+    function proveedorDevuelve() {
+        alert("INFORMACIÓN ENVIADA: Gracias por su cotización. El documento se cerrará ahora.");
+        document.getElementById('vista-orden').style.display = 'none';
+        document.getElementById('status-compra').innerText = "ESTADO: RESPUESTA RECIBIDA / PENDIENTE VALIDAR";
+        document.getElementById('status-compra').style.color = "var(--exito)";
+    }
+
+    function confirmarEntrega(btn) {
+        if(confirm("¿Confirma que el material ya está físicamente en obra?\n\nEsto actualizará el stock en BODEGA y cerrará este renglón.")) {
+            btn.innerText = "✓ EN BODEGA";
+            btn.style.background = "#ccc";
+            btn.disabled = true;
+            alert("BODEGA: Material ingresado y vinculado al renglón de proyecto.");
+        }
+    }
+</script>
+    const URL_DATABASE = "https://script.google.com/macros/s/AKfycby_E2nehogQhwLgx7pEExKAGy6lcmEG8zV5O5SBQ016dzXio_QE5pGOn5d7_ugABD0gYg/exec";
+</script>
+</body>
+</html>
