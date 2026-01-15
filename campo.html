@@ -1,1 +1,117 @@
-<file>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Avance | SOFTCON-MYS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-100 p-4 font-sans text-slate-900">
+    <nav class="fixed top-0 left-0 w-full bg-[#002344] text-white flex justify-between items-center px-6 py-3 shadow-lg z-50">
+        <div class="flex items-center gap-2">
+            <i data-lucide="layout-dashboard" class="w-6 h-6 text-yellow-400"></i>
+            <span class="font-black tracking-tight text-lg">SOFTCON-MYS</span>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="window.location.href='dashboard.html'" 
+                class="bg-yellow-500 text-[#002344] p-2 rounded-full hover:scale-110 transition-transform flex items-center justify-center" title="Ir al Dashboard">
+                <i data-lucide="home" class="w-5 h-5"></i>
+            </button>
+            <button onclick="window.location.href='index.html'" 
+                class="bg-red-500 text-white p-2 rounded-full hover:scale-110 transition-transform flex items-center justify-center" title="Cerrar Sesión">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </nav>
+    <div class="h-16"></div>
+    <div class="max-w-md mx-auto bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-200">
+        <div class="bg-[#002344] p-6 text-white text-center">
+            <h1 class="text-xl font-black italic">CONTROL DE OBRA</h1>
+            <p class="text-yellow-400 text-[9px] tracking-[3px] uppercase font-bold">Construyendo tu Futuro</p>
+        </div>
+        <form id="formAvance" class="p-6 space-y-6">
+            <div>
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Renglón Principal</label>
+                <select id="renglon" onchange="cargarSubrenglones()" class="w-full p-4 bg-slate-50 rounded-2xl border-none font-bold text-sm mt-2 shadow-inner">
+                    <option value="">Seleccione Renglón...</option>
+                    <option value="Cimentacion">Cimentación y Estructura</option>
+                    <option value="Mamposteria">Mampostería / Muros</option>
+                    <option value="Instalaciones">Instalaciones Eléctricas/Hidro</option>
+                    <option value="Acabados">Acabados y Pintura</option>
+                </select>
+            </div>
+            <div id="contenedorSubrenglones" class="bg-blue-50/50 p-4 rounded-[2rem] space-y-3 hidden">
+                <p class="text-[9px] font-black text-blue-900 uppercase mb-2">Sub-tareas Completadas Hoy</p>
+                <div id="listaCheck" class="space-y-2"></div>
+            </div>
+            <div class="bg-slate-50 p-6 rounded-[2rem]">
+                <div class="flex justify-between items-center mb-4">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">% Avance de la Actividad</label>
+                    <span id="valorPorcentaje" class="text-lg font-black text-[#002344]">50%</span>
+                </div>
+                <input type="range" id="inputRango" min="0" max="100" value="50" 
+                    oninput="document.getElementById('valorPorcentaje').innerText = this.value + '%'"
+                    class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-yellow-500">
+            </div>
+            <button type="submit" class="w-full bg-yellow-500 text-[#002344] font-black py-4 rounded-2xl shadow-lg hover:bg-yellow-400 transition-all uppercase text-xs flex items-center justify-center gap-2">
+                <i data-lucide="send" class="w-4 h-4"></i> Enviar Reporte al Dashboard
+            </button>
+        </form>
+    </div>
+    <script>
+        const subrenglonesData = {
+            "Cimentacion": ["Excavación", "Armado de Hierro", "Fundición Zapatas", "Viga Amarre"],
+            "Mamposteria": ["Levantado de muros", "Dinteles", "Soleras de corona"],
+            "Instalaciones": ["Tubería PVC", "Cajas Eléctricas", "Cableado"],
+            "Acabados": ["Pañete/Repello", "Estuco", "Primera mano pintura"]
+        };
+        function cargarSubrenglones() {
+            const renglon = document.getElementById('renglon').value;
+            const container = document.getElementById('contenedorSubrenglones');
+            const lista = document.getElementById('listaCheck');
+            if (renglon && subrenglonesData[renglon]) {
+                container.classList.remove('hidden');
+                lista.innerHTML = "";
+                subrenglonesData[renglon].forEach(sub => {
+                    lista.innerHTML += `
+                        <label class="flex items-center gap-3 bg-white p-3 rounded-xl border border-slate-100 shadow-sm cursor-pointer">
+                            <input type="checkbox" value="${sub}" class="w-5 h-5 accent-yellow-500">
+                            <span class="text-xs font-medium">${sub}</span>
+                        </label>`;
+                });
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+        const URL_DATABASE = "https://script.google.com/macros/s/AKfycby4D-3U8rHWddb9hV9KjrRpRn4Txcc-qYWnzd4rUk__4tTjMZQzvb9ATamMKibOLxMM/exec";
+        document.getElementById('formAvance').onsubmit = async (e) => {
+            e.preventDefault();
+            const renglon = document.getElementById('renglon').value;
+            const porcentaje = document.getElementById('inputRango').value;
+            const subrenglones = Array.from(document.querySelectorAll('#listaCheck input:checked')).map(cb => cb.value);
+            const datos = {
+                accion: 'registrarAvance',
+                renglon,
+                porcentaje,
+                subrenglones,
+                fecha: new Date().toLocaleString()
+            };
+            try {
+                await fetch(URL_DATABASE, {
+                    method: 'POST',
+                    body: JSON.stringify(datos)
+                });
+                alert('Reporte de Avance enviado con éxito.');
+                document.getElementById('formAvance').reset();
+                document.getElementById('contenedorSubrenglones').classList.add('hidden');
+                document.getElementById('valorPorcentaje').innerText = '50%';
+            } catch {
+                alert('Error al enviar el reporte.');
+            }
+        };
+        lucide.createIcons();
+    </script>
+</body>
+</html>

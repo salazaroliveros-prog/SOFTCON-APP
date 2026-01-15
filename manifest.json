@@ -1,1 +1,41 @@
-<file>
+{
+  "name": "SOFTCON-MYS-CONSTRU-WM",
+  "short_name": "SOFTCON-MYS",
+  "description": "Sistema de Gestión de Construcción - CONSTRUYENDO TU FUTURO",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#002344",
+  "theme_color": "#002344",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Dashboard", "short_name": "Dashboard", "description": "Panel principal de control", "url": "dashboard.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Inicio", "short_name": "Inicio", "description": "Página principal", "url": "index.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Compras", "short_name": "Compras", "description": "Gestión de compras y cotizaciones", "url": "compras.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Proyectos", "short_name": "Proyectos", "description": "Gestión de proyectos", "url": "proyectos.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "APU", "short_name": "APU", "description": "Análisis de Precios Unitarios", "url": "apu.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Bodega", "short_name": "Bodega", "description": "Gestión de inventario y bodega", "url": "bodega.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Finanzas", "short_name": "Finanzas", "description": "Gestión financiera y caja", "url": "finanzas.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Recursos Humanos", "short_name": "RRHH", "description": "Gestión de personal y asistencia", "url": "rrhh.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Asistencia", "short_name": "Asistencia", "description": "Registro de asistencia", "url": "asistencia.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Campo", "short_name": "Campo", "description": "Gestión de campo", "url": "campo.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Contratos", "short_name": "Contratos", "description": "Gestión de contratos", "url": "contrato.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Plantilla Contrato", "short_name": "PlantillaContrato", "description": "Plantilla de contrato", "url": "plantilla-contrato.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Plantilla Compras", "short_name": "PlantillaCompras", "description": "Plantilla de compras", "url": "plantilla-compras.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Orden", "short_name": "Orden", "description": "Órdenes de compra", "url": "orden.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Contabilidad", "short_name": "Cont", "description": "Contabilidad", "url": "cont.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Agenda Proveedores", "short_name": "AgendaProv", "description": "Agenda de proveedores", "url": "agenda_proveedores.html", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] }
+  ]
+}

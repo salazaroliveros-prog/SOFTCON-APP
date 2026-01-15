@@ -1,1 +1,105 @@
-<file>
+<div class="p-6 space-y-6">
+    
+    <div id="areaPropia">
+        <button id="btnPrincipal" onclick="registrarAsistencia('PROPIO')" 
+            class="w-full bg-[#002344] text-white py-8 rounded-[2rem] shadow-xl flex flex-col items-center justify-center transition-all active:scale-95">
+            <i data-lucide="fingerprint" class="w-12 h-12 mb-2 text-yellow-400"></i>
+            <span class="font-black text-sm uppercase">Marcar Mi Asistencia</span>
+        </button>
+    </div>
+
+    <div class="bg-slate-50 p-6 rounded-[2rem] border-2 border-dashed border-slate-200">
+        <p class="text-[9px] font-black text-slate-400 uppercase mb-3 text-center">Apoyo a Compañero (Sin Teléfono)</p>
+        
+        <div class="flex gap-2">
+            <input type="number" id="codigoCompañero" placeholder="Ingresa ID del compañero" 
+                class="flex-1 p-3 bg-white rounded-xl border-none text-sm font-bold outline-none focus:ring-2 ring-yellow-500">
+            
+            <button onclick="registrarAsistencia('APOYO')" id="btnApoyo"
+                class="bg-yellow-500 text-[#002344] p-3 rounded-xl shadow-md">
+                <i data-lucide="user-plus" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <p id="msgApoyo" class="text-[8px] text-slate-400 mt-2 italic text-center text-red-500"></p>
+    </div>
+
+    <button type="button" onclick="marcarAsistencia()" class="w-full bg-[#002344] text-white p-4 rounded-2xl font-black">
+        <i data-lucide="map-pin"></i> REGISTRAR ENTRADA CON GPS
+    </button>
+
+</div>
+
+<script>
+    // Lógica de control de tiempo (7:00 AM)
+    function verificarHorario() {
+        const ahora = new Date();
+        if (localStorage.getItem('asistencia_dia') === ahora.toLocaleDateString()) {
+            desactivarBotonPrincipal();
+        }
+    }
+
+    function desactivarBotonPrincipal() {
+        const btn = document.getElementById('btnPrincipal');
+        btn.disabled = true;
+        btn.classList.replace('bg-[#002344]', 'bg-slate-300');
+        btn.innerHTML = `
+            <i data-lucide="check-circle" class="w-12 h-12 mb-2 text-slate-500"></i>
+            <span class="font-black text-sm uppercase text-slate-500">Asistencia Registrada</span>
+        `;
+        lucide.createIcons();
+    }
+
+    async function registrarAsistencia(tipo) {
+        let idAsistencia = "";
+        const inputCompañero = document.getElementById('codigoCompañero');
+        const msg = document.getElementById('msgApoyo');
+
+        if (tipo === 'PROPIO') {
+            idAsistencia = "ID_DEL_DUEÑO"; // Aquí puedes jalar el ID que usó para el Login
+        } else {
+            idAsistencia = inputCompañero.value;
+            if (!idAsistencia) return alert("Por favor, ingresa el ID del compañero.");
+            msg.innerText = "🔍 Validando identidad...";
+            msg.className = "text-[8px] text-blue-500 mt-2 italic text-center";
+        }
+
+        // PETICIÓN DE VALIDACIÓN AL SERVIDOR
+        try {
+            const respuesta = await fetch(URL_DATABASE + "?accion=validarID&id=" + idAsistencia);
+            const resultado = await respuesta.json();
+
+            if (resultado.existe) {
+                // SI EXISTE, PROCEDE A REGISTRAR
+                enviarDatosFinales(idAsistencia, tipo, resultado.nombre);
+            } else {
+                // SI NO EXISTE
+                msg.innerText = "❌ ID no encontrado o Inactivo";
+                msg.className = "text-[8px] text-red-500 mt-2 italic text-center";
+                alert("El código " + idAsistencia + " no está registrado en SOFTCON-MYS.");
+            }
+        } catch (error) {
+            alert("Error de conexión. Intente de nuevo.");
+        }
+    }
+
+    function enviarDatosFinales(id, tipo, nombre) {
+        // Aquí envías la asistencia final a la hoja "Asistencia"
+        const datos = {
+            id: id,
+            nombre: nombre,
+            tipo: tipo,
+            fecha: new Date().toLocaleString(),
+            gps: "Obteniendo...", // Aquí va tu lógica de geocerca
+            dispositivo: navigator.platform 
+        };
+
+        fetch(URL_DATABASE, { method: 'POST', body: JSON.stringify(datos) })
+        .then(() => {
+            alert("¡Éxito! Asistencia de " + nombre + " registrada.");
+            if (tipo === 'PROPIO') desactivarBotonPrincipal();
+            document.getElementById('codigoCompañero').value = "";
+        });
+    }
+
+    window.onload = verificarHorario;
+</script>
