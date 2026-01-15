@@ -1,1 +1,146 @@
-<file>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contrato Laboral | SOFTCON-MYS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        #signature-pad { border: 2px dashed #cbd5e1; background: #f8fafc; cursor: crosshair; }
+        .tool-active { border-color: #e1ad01; background-color: #fefce8; }
+    </style>
+</head>
+<body class="bg-slate-900 p-4 font-sans text-slate-900">
+    <div class="max-w-md mx-auto bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/20">
+        <div class="bg-[#002344] p-8 text-white text-center relative">
+            <div class="absolute top-4 right-6 opacity-20"><i data-lucide="shield-check" class="w-12 h-12"></i></div>
+            <h1 class="text-2xl font-black tracking-tighter">SOFTCON-MYS</h1>
+            <p class="text-[10px] uppercase tracking-[4px] text-yellow-400 font-bold">Construyendo tu Futuro</p>
+            <div class="mt-4 inline-block bg-white/10 px-3 py-1 rounded-full text-[10px] font-mono">ID: WM-2026-AUTOGEN</div>
+        </div>
+        
+        <form id="contratoForm" class="p-8 space-y-6">
+            <div class="space-y-4">
+                <h2 class="flex items-center gap-2 font-black text-sm uppercase tracking-widest text-[#002344]">
+                    <i data-lucide="user" class="w-4 h-4"></i> Datos del Personal
+                </h2>
+                <div class="relative">
+                    <input type="text" name="nombre" required class="peer w-full border-b-2 border-slate-200 py-3 outline-none focus:border-yellow-500 transition-colors placeholder-transparent" placeholder="Nombre">
+                    <label class="absolute left-0 -top-3.5 text-slate-500 text-xs transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-3 peer-focus:-top-3.5 peer-focus:text-yellow-600 peer-focus:text-xs">Nombre Completo</label>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="relative">
+                        <input type="number" name="dpi" required class="peer w-full border-b-2 border-slate-200 py-3 outline-none focus:border-yellow-500 placeholder-transparent" placeholder="DPI">
+                        <label class="absolute left-0 -top-3.5 text-slate-500 text-xs transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-3 peer-focus:-top-3.5">CUI / DPI</label>
+                    </div>
+                    <div class="relative border-b-2 border-slate-200">
+                        <select name="puesto" class="w-full py-3 outline-none bg-transparent text-sm font-bold">
+                            <option value="AYUDANTE">Ayudante</option>
+                            <option value="ALBAÑIL" selected>Albañil</option>
+                            <option value="SUPERVISOR">Supervisor</option>
+                        </select>
+                        <label class="absolute left-0 -top-3.5 text-slate-500 text-[10px] uppercase font-bold">Puesto</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 rounded-3xl p-6 border border-slate-100 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-black text-sm uppercase tracking-widest text-[#002344]">¿Asignar Equipo?</h2>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="toggleEquipo" class="sr-only peer" onchange="toggleHerramientas()">
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:width-5 after:transition-all peer-checked:bg-yellow-500"></div>
+                    </label>
+                </div>
+
+                <div id="panelHerramientas" class="hidden space-y-4 animate-fade-in">
+                    <p class="text-[11px] text-slate-500 italic">Seleccione las herramientas entregadas desde bodega:</p>
+                    <div class="grid grid-cols-1 gap-2">
+                        <label class="flex items-center justify-between p-3 border rounded-xl hover:bg-white cursor-pointer transition-all">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" class="w-4 h-4 accent-yellow-600" data-precio="Q 350.00" value="Amoladora 4.5">
+                                <span class="text-xs font-bold uppercase">Amoladora 4.5"</span>
+                            </div>
+                            <span class="text-[10px] font-mono text-red-600 font-bold">Reposición: Q 350</span>
+                        </label>
+                        <label class="flex items-center justify-between p-3 border rounded-xl hover:bg-white cursor-pointer transition-all">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" class="w-4 h-4 accent-yellow-600" data-precio="Q 150.00" value="Nivel de Mano">
+                                <span class="text-xs font-bold uppercase">Nivel de Mano Profesional</span>
+                            </div>
+                            <span class="text-[10px] font-mono text-red-600 font-bold">Reposición: Q 150</span>
+                        </label>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-2xl border-l-4 border-yellow-400">
+                        <p class="text-[10px] leading-tight text-yellow-800">
+                            <b>NOTA DE CARGO:</b> En caso de extravío, el valor indicado será descontado. Si el equipo falla por uso, repórtelo inmediatamente para reparación sin costo.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <h2 class="font-black text-sm uppercase tracking-widest text-[#002344] text-center">Firma Digital</h2>
+                <canvas id="signature-pad" class="w-full h-40 rounded-[2rem] shadow-inner"></canvas>
+                <button type="button" onclick="clearSignature()" class="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-red-500 transition-colors">Limpiar Firma</button>
+            </div>
+
+            <button type="submit" class="w-full bg-[#e1ad01] text-[#002344] font-black py-5 rounded-[2rem] shadow-[0_15px_30px_rgba(225,173,1,0.3)] uppercase text-sm tracking-widest hover:scale-[1.02] active:scale-95 transition-all">
+                Enviar Contrato y Registro
+            </button>
+        </form>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const canvas = document.getElementById('signature-pad');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        function toggleHerramientas() {
+            const panel = document.getElementById('panelHerramientas');
+            panel.classList.toggle('hidden');
+        }
+
+        // Ajustar canvas a su tamaño real visual
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (e.clientX || e.touches[0].clientX) - rect.left,
+                y: (e.clientY || e.touches[0].clientY) - rect.top
+            };
+        }
+
+        function draw(e) {
+            if (!drawing) return;
+            e.preventDefault();
+            const pos = getPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+        }
+
+        canvas.addEventListener('mousedown', (e) => { drawing = true; ctx.beginPath(); ctx.moveTo(getPos(e).x, getPos(e).y); });
+        canvas.addEventListener('touchstart', (e) => { drawing = true; ctx.beginPath(); ctx.moveTo(getPos(e).x, getPos(e).y); });
+        window.addEventListener('mouseup', () => drawing = false);
+        window.addEventListener('touchend', () => drawing = false);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('touchmove', draw);
+
+        ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.strokeStyle = '#002344';
+
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        document.getElementById('contratoForm').onsubmit = async (e) => {
+            e.preventDefault();
+            alert("Contrato procesado. Datos enviados a SOFTCON-MYS Cloud.");
+            // Aquí iría el fetch a tu URL_DATABASE
+        };
+    </script>
+</body>
+</html>
